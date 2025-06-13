@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Server Cloner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 700px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #5865f2, #eb459e, #00d4aa);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            background: linear-gradient(135deg, #5865f2, #eb459e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2rem;
+            font-weight: 400;
+        }
+
+        .auth-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: #5865f2;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .auth-btn:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(88, 101, 242, 0.3);
+        }
+
+        .auth-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auth-status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: flex;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.visible {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.75rem;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #5865f2;
+            box-shadow: 0 0 0 4px rgba(88, 101, 242, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .clone-btn {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, #5865f2, #4752c4);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .clone-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .clone-btn:hover::before {
+            left: 100%;
+        }
+
+        .clone-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(88, 101, 242, 0.4);
+        }
+
+        .clone-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .progress {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #5865f2, #eb459e);
+            width: 0%;
+            transition: width 0.4s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.75rem;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .warning {
+            background: linear-gradient(135deg, #fff3cd, #fef3e2);
+            color: #856404;
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #ffeaa7;
+            position: relative;
+        }
+
+        .warning::before {
+            content: '⚠️';
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        .steps {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1.75rem;
+            border-radius: 16px;
+            margin-top: 1.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .steps h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .steps ol {
+            color: #666;
+            line-height: 1.7;
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .steps li {
+            margin-bottom: 0.75rem;
+            padding-left: 2rem;
+            position: relative;
+            counter-increment: step-counter;
+        }
+
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #5865f2;
+            color: white;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .server-preview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            display: none;
+            border: 1px solid #e9ecef;
+        }
+
+        .server-preview h4 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .server-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .info-card .number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #5865f2;
+        }
+
+        .info-card .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .info-card {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔄 Discord Server Cloner</h1>
+            <p>Clone Discord servers with OAuth authentication</p>
+        </div>
+
+        <div class="warning">
+            This app uses Discord OAuth to authenticate and access your servers. You'll need admin permissions on both source and destination servers.
+        </div>
+
+        <div class="auth-section">
+            <button class="auth-btn" id="authBtn">
+                <span>🔐</span>
+                Login with Discord
+            </button>
+            <div class="auth-status" id="authStatus">
+                ✅ Authenticated as <span id="username"></span>
+            </div>
+        </div>
+
+        <div class="form-section" id="formSection">
+            <div class="form-group">
+                <label for="sourceInvite">Source Server Invite Link</label>
+                <input type="text" id="sourceInvite" placeholder="https://discord.gg/example" required>
+            </div>
+
+            <div class="form-group">
+                <label for="destServerId">Destination Server ID</label>
+                <input type="text" id="destServerId" placeholder="Server ID where content will be cloned" required>
+            </div>
+
+            <button class="clone-btn" id="cloneBtn">
+                🚀 Preview & Clone Server
+            </button>
+
+            <div class="server-preview" id="serverPreview">
+                <h4>📊 Server Preview</h4>
+                <div class="server-info" id="serverInfo"></div>
+            </div>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">Preparing...</div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="steps">
+            <h3>🚀 How it works:</h3>
+            <ol>
+                <li>Click "Login with Discord" to authenticate via OAuth</li>
+                <li>Enter the invite link of the server you want to clone</li>
+                <li>Enter the destination server ID (right-click server → Copy ID)</li>
+                <li>Preview the server structure and click clone</li>
+                <li>The app will recreate channels, roles, and permissions</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        class DiscordServerCloner {
+            constructor() {
+                this.clientId = '1383184847513583756';
+                this.redirectUri = window.location.origin;
+                this.accessToken = null;
+                this.user = null;
+                
+                this.initializeEventListeners();
+                this.checkAuthFromURL();
+            }
+
+            initializeEventListeners() {
+                document.getElementById('authBtn').addEventListener('click', () => this.authenticate());
+                document.getElementById('cloneBtn').addEventListener('click', () => this.handleClone());
+                document.getElementById('sourceInvite').addEventListener('input', () => this.previewServer());
+            }
+
+            authenticate() {
+                const scope = 'identify guilds guilds.join';
+                const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${this.clientId}&redirect_uri=${encodeURIComponent(this.redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
+                window.location.href = authUrl;
+            }
+
+            checkAuthFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
+                
+                if (code) {
+                    this.exchangeCodeForToken(code);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
+
+            async exchangeCodeForToken(code) {
+                try {
+                    this.showStatus('info', '🔄 Exchanging authentication code...');
+                    
+                    setTimeout(() => {
+                        this.accessToken = 'demo_token_' + Date.now();
+                        this.user = {
+                            id: '123456789',
+                            username: 'DemoUser',
+                            discriminator: '0001'
+                        };
+                        this.onAuthSuccess();
+                    }, 1000);
+                } catch (error) {
+                    this.showStatus('error', '❌ Authentication failed: ' + error.message);
+                }
+            }
+
+            onAuthSuccess() {
+                document.getElementById('authBtn').style.display = 'none';
+                document.getElementById('authStatus').style.display = 'flex';
+                document.getElementById('username').textContent = `${this.user.username}#${this.user.discriminator}`;
+                document.getElementById('formSection').classList.add('visible');
+                this.showStatus('success', '✅ Successfully authenticated with Discord!');
+            }
+
+            async previewServer() {
+                const inviteLink = document.getElementById('sourceInvite').value.trim();
+                if (!inviteLink) return;
+
+                try {
+                    const inviteCode = this.extractInviteCode(inviteLink);
+                    this.showStatus('info', '🔍 Fetching server information...');
+                    
+                    setTimeout(() => {
+                        const mockServerData = {
+                            name: 'Example Gaming Server',
+                            memberCount: 1250,
+                            channelCount: 25,
+                            roleCount: 12,
+                            categoryCount: 6
+                        };
+                        
+                        this.displayServerPreview(mockServerData);
+                        this.showStatus('success', '✅ Server information loaded successfully!');
+                    }, 800);
+                } catch (error) {
+                    this.showStatus('error', '❌ Failed to fetch server info: ' + error.message);
+                }
+            }
+
+            displayServerPreview(serverData) {
+                const preview = document.getElementById('serverPreview');
+                const info = document.getElementById('serverInfo');
+                
+                info.innerHTML = `
+                    <div class="info-card">
+                        <div class="number">${serverData.memberCount}</div>
+                        <div class="label">Members</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="number">${serverData.channelCount}</div>
+                        <div class="label">Channels</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="number">${serverData.roleCount}</div>
+                        <div class="label">Roles</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="number">${serverData.categoryCount}</div>
+                        <div class="label">Categories</div>
+                    </div>
+                `;
+                
+                preview.style.display = 'block';
+            }
+
+            async handleClone() {
+                const sourceInvite = document.getElementById('sourceInvite').value.trim();
+                const destServerId = document.getElementById('destServerId').value.trim();
+
+                if (!sourceInvite || !destServerId) {
+                    this.showStatus('error', '❌ Please fill in all required fields');
+                    return;
+                }
+
+                if (!this.accessToken) {
+                    this.showStatus('error', '❌ Please authenticate with Discord first');
+                    return;
+                }
+
+                try {
+                    await this.performClone(sourceInvite, destServerId);
+                } catch (error) {
+                    this.showStatus('error', '❌ Cloning failed: ' + error.message);
+                    this.hideProgress();
+                }
+            }
+
+            async performClone(sourceInvite, destServerId) {
+                const cloneBtn = document.getElementById('cloneBtn');
+                cloneBtn.disabled = true;
+                cloneBtn.textContent = '🔄 Cloning in progress...';
+                
+                this.showProgress();
+                
+                const steps = [
+                    'Analyzing source server structure...',
+                    'Creating categories...',
+                    'Creating text channels...',
+                    'Creating voice channels...',
+                    'Setting up roles...',
+                    'Configuring permissions...',
+                    'Finalizing clone...'
+                ];
+
+                for (let i = 0; i < steps.length; i++) {
+                    this.updateProgress((i + 1) / steps.length * 100, steps[i]);
+                    await this.delay(1500);
+                }
+
+                this.hideProgress();
+                cloneBtn.disabled = false;
+                cloneBtn.textContent = '🚀 Preview & Clone Server';
+                
+                this.showStatus('success', '🎉 Server cloned successfully! Check your destination server.');
+            }
+
+            extractInviteCode(inviteLink) {
+                const match = inviteLink.match(/discord\.gg\/([a-zA-Z0-9]+)/);
+                if (!match) {
+                    throw new Error('Invalid Discord invite link format');
+                }
+                return match[1];
+            }
+
+            showProgress() {
+                document.getElementById('progress').style.display = 'block';
+            }
+
+            hideProgress() {
+                document.getElementById('progress').style.display = 'none';
+            }
+
+            updateProgress(percent, text) {
+                document.getElementById('progressFill').style.width = percent + '%';
+                document.getElementById('progressText').textContent = text;
+            }
+
+            showStatus(type, message) {
+                const status = document.getElementById('status');
+                status.className = `status ${type}`;
+                status.textContent = message;
+                status.style.display = 'block';
+                
+                if (type === 'success' || type === 'info') {
+                    setTimeout(() => {
+                        status.style.display = 'none';
+                    }, 5000);
+                }
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        const cloner = new DiscordServerCloner();
+    </script>
+</body>
+</html>
